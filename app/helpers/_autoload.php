@@ -32,6 +32,9 @@ return [
     'integrations' => [
         APP_PATH . '/helpers/integrations/phpoffice_helpers.php',
     ],
+    'middleware' => [
+        APP_PATH . '/middleware/PermissionMiddleware.php',
+    ],
 
     // View & Presentation Helpers
     'view' => [

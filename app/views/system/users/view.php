@@ -24,7 +24,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Get the user ID from the data passed by the route.
         const userId = '<?= h($user_id ?? '') ?>';
         const container = document.getElementById('user-profile-content');
         const loader = document.getElementById('loading-placeholder');
@@ -74,28 +73,38 @@
                 </div>
             </div>`;
 
-            const detailsCard = card({
-                header: { title: 'User Details' },
-                body: `
-                <dl class="details-list">
-                    <div class="details-list-item"><dt>Tenant</dt><dd>${user.tenant_name ? App.escapeHTML(user.tenant_name) : '<span class="text-muted">N/A</span>'}</dd></div>
-                    <div class="details-list-item"><dt>User ID</dt><dd><code>${user.id}</code></dd></div>
-                    <div class="details-list-item"><dt>Joined On</dt><dd>${new Date(user.created_at).toLocaleDateString()}</dd></div>
-                </dl>`
-            });
+            // --- THE FIX IS HERE ---
+            // Manually build the HTML for the cards instead of calling a PHP function.
+            const detailsCardHtml = `
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">User Details</h3></div>
+                <div class="card-body">
+                    <dl class="details-list">
+                        <div class="details-list-item"><dt>Tenant</dt><dd>${user.tenant_name ? App.escapeHTML(user.tenant_name) : '<span class="text-muted">N/A</span>'}</dd></div>
+                        <div class="details-list-item"><dt>User ID</dt><dd><code>${user.id}</code></dd></div>
+                        <div class="details-list-item"><dt>Joined On</dt><dd>${new Date(user.created_at).toLocaleDateString()}</dd></div>
+                    </dl>
+                </div>
+            </div>`;
 
-            const rolesCard = card({
-                header: { title: 'Assigned Roles' },
-                body: user.roles && user.roles.length > 0
+            const rolesCardHtml = `
+            <div class="card">
+                <div class="card-header"><h3 class="card-title">Assigned Roles</h3></div>
+                <div class="card-body">
+                    ${user.roles && user.roles.length > 0
                     ? `<div class="d-flex flex-wrap gap-2">${user.roles.map(role => `<span class="badge rounded-pill bg-secondary">${App.escapeHTML(role)}</span>`).join('')}</div>`
                     : '<p class="text-muted mb-0">This user has no roles assigned.</p>'
-            });
+                }
+                </div>
+            </div>`;
+            // --- END OF FIX ---
+
 
             container.innerHTML = `
             ${profileHeader}
             <div class="row g-4">
-                <div class="col-lg-6">${detailsCard}</div>
-                <div class="col-lg-6">${rolesCard}</div>
+                <div class="col-lg-6">${detailsCardHtml}</div>
+                <div class="col-lg-6">${rolesCardHtml}</div>
             </div>`;
         };
 
@@ -110,10 +119,16 @@
                 container.classList.remove('hidden');
             } catch (error) {
                 const errorMsg = App.escapeHTML(error.message || 'The user could not be loaded.');
-                const errorCard = card({
-                    body: `<div class="alert alert-danger m-0 text-center"><strong>${error.status} | Could not load user</strong><p class="mb-0 mt-1">${errorMsg}</p></div>`
-                });
-                loader.innerHTML = errorCard;
+                const errorCardHtml = `
+                <div class="card">
+                    <div class="card-body">
+                        <div class="alert alert-danger m-0 text-center">
+                            <strong>${error.status || 'Error'} | Could not load user</strong>
+                            <p class="mb-0 mt-1">${errorMsg}</p>
+                        </div>
+                    </div>
+                </div>`;
+                loader.innerHTML = errorCardHtml;
             }
         };
 
@@ -168,6 +183,6 @@
     }
 
     .hidden {
-        display: none;
+        display: none !important;
     }
 </style>

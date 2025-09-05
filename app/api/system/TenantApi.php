@@ -1,57 +1,73 @@
-<?php
-// app/api/system/TenantApi.php
+<?php // app/api/system/TenantApi.php
+
 declare(strict_types=1);
 
 /**
- * Handles listing tenants with server-side pagination, searching, and sorting.
- * MODIFIED: Now handles separate 'search' and 'status' filters.
+ * A private helper to determine what actions the current session user can perform on a given tenant record.
  */
-function handle_list_tenants(): string
+function check_tenant_permissions(array $tenant): array
 {
-    $config = [
-        'base_query' => table('tenants'),
+    $isSuperAdmin = session('is_app_admin');
+    $isTenantAdmin = session('is_tenant_admin');
+    $currentUserTenantId = session('tenant_id');
 
-        'searchable_columns' => ['name', 'domain'],
-
-        'sortable_columns' => ['name', 'domain', 'status', 'created_at'],
-
-        'default_sort' => ['column' => 'created_at', 'direction' => 'DESC'],
-
-        'filter_handlers' => [
-            'status' => function ($query, $value) {
-                if (!empty($value)) {
-                    $query->where('status', '=', $value);
-                }
-            }
-        ]
+    return [
+        'edit' => $isSuperAdmin || ($isTenantAdmin && $tenant['id'] === $currentUserTenantId),
+        'delete' => $isSuperAdmin, // Only Super Admins can delete
     ];
-
-    return api_list_handler($config);
 }
 
 /**
- * Handles creating a new tenant.
- *
- * FINAL FIX: This version is now robust. It explicitly builds the array
- * for insertion, ignoring any extraneous data from the input (like an empty 'id' field).
- * This prevents database errors related to the primary key on create operations.
+ * Handles listing tenants with server-side processing and permission injection.
  */
+function handle_list_tenants(): string
+{
+    $baseQuery = table('tenants');
+
+    // If the user is not a Super Admin, they can only see their own tenant.
+    if (!session('is_app_admin')) {
+        $baseQuery->where('id', '=', session('tenant_id'));
+    }
+
+    $config = [
+        'base_query' => $baseQuery,
+        'searchable_columns' => ['name', 'domain'],
+        'sortable_columns' => ['name', 'domain', 'status', 'created_at'],
+        'default_sort' => ['column' => 'created_at', 'direction' => 'DESC'],
+    ];
+
+    $jsonResponse = api_list_handler($config);
+    $response = json_decode($jsonResponse, true);
+
+    // Inject the 'can' object for UI permissions
+    if (isset($response['data'])) {
+        foreach ($response['data'] as &$tenant) {
+            $tenant['can'] = check_tenant_permissions($tenant);
+        }
+    }
+
+    return json_encode($response);
+}
+
+
 /**
- * Handles creating a new tenant.
- *
- * FINAL FIX: This version is now robust. It explicitly builds the array
- * for insertion, ignoring any extraneous data from the input (like an empty 'id' field).
- * This prevents database errors related to the primary key on create operations.
+ * Handles creating a new tenant. (Super Admin only)
  */
 function handle_create_tenant(): string
 {
+    // Security Check: Only Super Admins can create tenants.
+    if (!session('is_app_admin')) {
+        return error('Forbidden. You do not have permission to create tenants.', 403);
+    }
+
     try {
         $data = input();
         $rules = [
             'name' => 'required|min:3|max:100',
-            'domain' => 'max:100', // Domain is optional
+            'domain' => 'max:100|unique:tenants,domain',
             'status' => 'required',
         ];
+
         $errors = validate($data, $rules);
         if (!empty($errors)) {
             return validation_error($errors);
@@ -61,11 +77,6 @@ function handle_create_tenant(): string
         $tenantId = generate_uuidv7();
         $currentTime = date('Y-m-d H:i:s');
 
-        // ==========================================================
-        // THE FIX: Create a new, clean array for the insert operation.
-        // This ensures no unwanted fields (like an empty 'id' from the form)
-        // are passed to the database query, resolving the 500 error.
-        // ==========================================================
         $insertData = [
             'id' => $tenantId,
             'name' => sanitize($data['name']),
@@ -77,18 +88,12 @@ function handle_create_tenant(): string
             'updated_at' => $currentTime,
         ];
 
-        // This insert call will now succeed.
         table('tenants')->insert($insertData);
-
         $newTenant = table('tenants')->where('id', '=', $tenantId)->first();
+
         return success($newTenant, 'Tenant created successfully.', 201);
-
     } catch (Throwable $e) {
-        if (str_contains($e->getMessage(), 'UNIQUE constraint failed') || str_contains($e->getMessage(), 'Duplicate entry')) {
-            return validation_error(['domain' => 'The domain has already been taken.']);
-        }
-
-        write_log("Tenant Create API Error: " . $e->getMessage() . "\n" . $e->getTraceAsString(), 'critical');
+        write_log("Tenant Create API Error: " . $e->getMessage(), 'critical');
         return error('An internal server error occurred.', 500);
     }
 }
@@ -98,12 +103,19 @@ function handle_create_tenant(): string
  */
 function handle_get_tenant(string $id): string
 {
-    return api_get_handler([
-        'table' => 'tenants',
-        'id' => $id
-        // App admins can view any tenant, so no specific security check is needed here beyond authentication.
-    ]);
+    $tenant = table('tenants')->where('id', '=', $id)->first();
+    if (!$tenant) {
+        return error('Tenant not found', 404);
+    }
+
+    // Security Check: Super Admin or the admin of this tenant
+    if (!session('is_app_admin') && session('tenant_id') !== $id) {
+        return error('Forbidden.', 403);
+    }
+
+    return success($tenant);
 }
+
 
 /**
  * Handles updating an existing tenant.
@@ -111,10 +123,20 @@ function handle_get_tenant(string $id): string
 function handle_update_tenant(string $id): string
 {
     try {
+        $tenant = table('tenants')->where('id', '=', $id)->first();
+        if (!$tenant) {
+            return error('Tenant not found.', 404);
+        }
+
+        // Security Check: Must be Super Admin or the admin of this tenant
+        if (!session('is_app_admin') && session('tenant_id') !== $id) {
+            return error('Forbidden. You do not have permission to edit this tenant.', 403);
+        }
+
         $data = input();
         $rules = [
             'name' => 'required|min:3|max:100',
-            'domain' => 'max:100',
+            'domain' => "max:100|unique:tenants,domain,{$id},id",
             'status' => 'required',
         ];
 
@@ -123,47 +145,52 @@ function handle_update_tenant(string $id): string
             return validation_error($errors);
         }
 
-        if (!table('tenants')->where('id', '=', $id)->first()) {
-            return error('Tenant not found.', 404);
-        }
-
-        table('tenants')->where('id', '=', $id)->update([
+        $updateData = [
             'name' => sanitize($data['name']),
             'domain' => !empty($data['domain']) ? sanitize($data['domain']) : null,
             'status' => sanitize($data['status']),
             'updated_by' => session('user_id'),
             'updated_at' => date('Y-m-d H:i:s'),
-        ]);
+        ];
+
+        // A tenant admin should not be able to change their own status to disabled.
+        if (!session('is_app_admin') && $data['status'] !== 'active') {
+            return error('You cannot change the status of your own tenant.', 403);
+        }
+
+
+        table('tenants')->where('id', '=', $id)->update($updateData);
 
         $updatedTenant = table('tenants')->where('id', '=', $id)->first();
         return success($updatedTenant, 'Tenant updated successfully.');
     } catch (Throwable $e) {
-        if (str_contains($e->getMessage(), 'UNIQUE constraint failed') || str_contains($e->getMessage(), 'Duplicate entry')) {
-            return validation_error(['domain' => 'The domain has already been taken.']);
-        }
         write_log("Tenant Update API Error: " . $e->getMessage(), 'critical');
         return error('An internal server error occurred.', 500);
     }
 }
 
+
 /**
- * Handles deleting a tenant.
+ * Handles deleting a tenant. (Super Admin only)
  */
 function handle_delete_tenant(string $id): string
 {
+    // Security Check: Only Super Admins can delete tenants.
+    if (!session('is_app_admin')) {
+        return error('Forbidden. You do not have permission to delete tenants.', 403);
+    }
+
     try {
         if (!table('tenants')->where('id', '=', $id)->first()) {
             return error('Tenant not found.', 404);
         }
 
-        // Prevent deletion if tenant has associated users
         $userCount = table('users')->where('tenant_id', '=', $id)->count();
         if ($userCount > 0) {
-            return error('Cannot delete tenant. It has ' . $userCount . ' associated user(s).', 409); // 409 Conflict
+            return error('Cannot delete tenant. It has ' . $userCount . ' associated user(s).', 409);
         }
 
         $deletedRows = table('tenants')->where('id', '=', $id)->delete();
-
         if ($deletedRows > 0) {
             return success(null, 'Tenant deleted successfully.');
         }

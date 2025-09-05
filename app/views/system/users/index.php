@@ -9,12 +9,7 @@ $datatable_options = [
         'type' => 'POST'
     ],
     'order' => [[3, 'desc']], // Default sort by "Created On" descending
-    'layout' => [
-        'topStart' => null,
-        'topEnd' => 'search',
-        'bottomStart' => 'info',
-        'bottomEnd' => ['pageLength', 'paging']
-    ],
+
     'columns' => [
         dt_text_column('name', 'User & Email', ['render' => 'userNameEmailRenderer']),
         dt_text_column('tenant_name', 'Tenant'),

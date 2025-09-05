@@ -1,4 +1,10 @@
-<?php /** * core/router.php - Routing Definition Helpers * * This file provides helper functions (get, post, group) to define routes. * It works with nikic/fast-route to create a dispatcher instance. */
+<?php
+/**
+ * core/router.php - Routing Definition Helpers
+ *
+ * This file provides helper functions (get, post, group) to define routes.
+ * It works with nikic/fast-route to create a dispatcher instance.
+ */
 declare(strict_types=1);
 
 use FastRoute\Dispatcher;
@@ -25,7 +31,8 @@ function create_dispatcher(callable $routeDefinitionCallback): Dispatcher
         foreach ($GLOBALS['routes_collection'] as $route) {
             $r->addRoute($route['method'], $route['uri'], [
                 'callback' => $route['callback'],
-                'middleware' => $route['middleware']
+                'middleware' => $route['middleware'],
+                'permission' => $route['permission'] ?? null, // Add permission to the handler info
             ]);
         }
     });
@@ -35,168 +42,176 @@ function create_dispatcher(callable $routeDefinitionCallback): Dispatcher
  * Registers a GET route.
  * @param string $uri The route URI pattern.
  * @param callable|string $callback The callback function or 'ApiFile::method' string.
+ * @param string|null $permission An optional permission required for this route.
  */
-function get(string $uri, callable|string $callback): void
+function get(string $uri, callable|string $callback, ?string $permission = null): void
 {
-    add_route('GET', $uri, $callback);
+    add_route('GET', $uri, $callback, $permission);
 }
 
 /**
  * Registers a POST route.
  * @param string $uri The route URI pattern.
  * @param callable|string $callback The callback function or 'ApiFile::method' string.
+ * @param string|null $permission An optional permission required for this route.
  */
-function post(string $uri, callable|string $callback): void
+function post(string $uri, callable|string $callback, ?string $permission = null): void
 {
-    add_route('POST', $uri, $callback);
+    add_route('POST', $uri, $callback, $permission);
 }
 
-// Add put(), patch(), delete() here if needed, following the same pattern.
 /**
- * Creates a route group with common attributes like prefix and middleware.
- *
- * @param array<string, mixed> $attributes The group attributes ('prefix', 'middleware').
- * @param callable $callback The callback containing route definitions for the group.
+ * Creates a route group with common attributes like prefix, middleware, and permissions.
  */
 function group(array $attributes, callable $callback): void
 {
-    // Store the state of the parent group
     $previous_group = $GLOBALS['route_groups'];
-    // Calculate the new group state
     $new_group = $previous_group;
-    // **FIX**: Correctly concatenate string prefixes
+
     $new_prefix = trim($attributes['prefix'] ?? '', '/');
     if (!empty($new_prefix)) {
         $existing_prefix = trim($previous_group['prefix'] ?? '', '/');
         $new_group['prefix'] = !empty($existing_prefix) ? $existing_prefix . '/' . $new_prefix : $new_prefix;
     }
-    // **FIX**: Correctly merge middleware arrays
+
     $new_middleware = (array) ($attributes['middleware'] ?? []);
     if (!empty($new_middleware)) {
         $existing_middleware = (array) ($previous_group['middleware'] ?? []);
         $new_group['middleware'] = array_unique(array_merge($existing_middleware, $new_middleware));
     }
-    // Set the new state for the duration of the callback
+
+    // Add group-level permission
+    if (isset($attributes['permission'])) {
+        $new_group['permission'] = $attributes['permission'];
+    }
+
     $GLOBALS['route_groups'] = $new_group;
     $callback();
-    // Restore the parent group's state
     $GLOBALS['route_groups'] = $previous_group;
 }
 
 /**
  * Adds a route to the global collection, applying any group attributes.
- *
- * @param string $method The HTTP method.
- * @param string $uri The route URI.
- * @param callable|string $callback The route callback.
  */
-function add_route(string $method, string $uri, callable|string $callback): void
+function add_route(string $method, string $uri, callable|string $callback, ?string $permission = null): void
 {
     $prefix = trim($GLOBALS['route_groups']['prefix'] ?? '', '/');
     $path = trim($uri, '/');
-    // Filter out empty parts to correctly handle root URIs ('/')
     $parts = array_filter([$prefix, $path]);
     $final_uri = '/' . implode('/', $parts);
-    // Handle the specific case where the URI was just '/' within a group
+
     if (empty($parts) && !empty($prefix) && $uri === '/') {
         $final_uri = '/' . $prefix;
     } elseif (empty($parts) && $uri === '/') {
         $final_uri = '/';
     }
-    $group_middleware = $GLOBALS['route_groups']['middleware'] ?? [];
+
     $GLOBALS['routes_collection'][] = [
         'method' => $method,
         'uri' => $final_uri,
         'callback' => $callback,
-        'middleware' => $group_middleware
+        'middleware' => $GLOBALS['route_groups']['middleware'] ?? [],
+        'permission' => $permission ?? $GLOBALS['route_groups']['permission'] ?? null,
     ];
 }
 
+
 /**
  * Executes the middleware pipeline and the final route handler.
- * @return mixed The final response from the handler or middleware.
  */
 function execute_pipeline(array $handler_info, array $params): mixed
 {
+    // ===== THE FIX IS HERE =====
+    // This pipeline is now smarter and handles both permissions and middleware.
+
     $callback = $handler_info['callback'];
+    $permission = $handler_info['permission'] ?? null;
     $middleware_stack = $handler_info['middleware'] ?? [];
-    // The core handler is the last step in the pipeline
+
+    // The core handler is the last step in the pipeline.
     $handler = fn(array $p) => execute_callback($callback, $p);
+
+    // 1. Wrap the handler with all the NAMED middleware (e.g., 'CorsMiddleware').
     if (!empty($middleware_stack)) {
-        // Reverse the middleware to wrap them from outside-in
         $pipeline = array_reverse($middleware_stack);
         foreach ($pipeline as $middleware_name) {
             $handler = fn(array $p) => execute_middleware($middleware_name, $p, $handler);
         }
     }
+
+    // 2. Wrap the entire stack with the PERMISSION check, if it exists.
+    // This ensures the permission check runs first.
+    if ($permission) {
+        $handler = fn(array $p) => check_permission($permission) ? $handler($p) : null;
+    }
+
+    // 3. Execute the final, fully wrapped handler.
     return $handler($params);
+    // ===== END OF FIX =====
 }
 
+
 /**
- * Executes a middleware.
- * @return mixed The result of the next handler or a response from the middleware.
+ * Executes a named middleware file.
  */
 function execute_middleware(string $middleware_name, array $params, callable $next): mixed
 {
     $middleware_file = APP_PATH . '/middleware/' . $middleware_name . '.php';
     if (!file_exists($middleware_file)) {
-        throw new Exception("Middleware not found: {$middleware_name}");
+        // Throw an exception for a more explicit error in logs.
+        throw new Exception("Middleware file not found: {$middleware_file}");
     }
-    // The result of the require determines if the pipeline continues
+
+    // The result of including the file determines if the pipeline continues.
     $result = require $middleware_file;
-    // If middleware returns true, proceed to the next layer
+
+    // If middleware returns true, proceed to the next layer in the pipeline.
     if ($result === true) {
         return $next($params);
     }
-    // Middleware handled the response and exited, return null to stop the pipeline.
+
+    // Otherwise, the middleware has handled the response and exited.
+    // Return null to stop the pipeline from continuing.
     return null;
 }
 
+
 /**
  * Executes the route's callback function.
- * UPDATED: Now handles type casting for route parameters.
- * @return mixed The result of the callback.
- * @throws Exception if the callback is not valid.
  */
 function execute_callback(callable|string $callback, array $params = []): mixed
 {
     if (is_callable($callback)) {
-        // Get reflection info to understand parameter types
         $reflection = new ReflectionFunction($callback);
         $parameters = $reflection->getParameters();
-
         $args = [];
         $paramValues = array_values($params);
-
         foreach ($parameters as $index => $param) {
             $value = $paramValues[$index] ?? null;
-
-            // Handle type casting based on parameter type hint
             if ($param->hasType()) {
                 $type = $param->getType();
                 if ($type instanceof ReflectionNamedType) {
                     $typeName = $type->getName();
-                    switch ($typeName) {
-                        case 'int':
-                            $value = (int) $value;
-                            break;
-                        case 'float':
-                            $value = (float) $value;
-                            break;
-                        case 'bool':
-                            $value = (bool) $value;
-                            break;
-                        case 'string':
-                            $value = (string) $value;
-                            break;
-                        // Add other types as needed
+                    if ($value !== null) { // Avoid casting null values
+                        switch ($typeName) {
+                            case 'int':
+                                $value = (int) $value;
+                                break;
+                            case 'float':
+                                $value = (float) $value;
+                                break;
+                            case 'bool':
+                                $value = (bool) $value;
+                                break;
+                            case 'string':
+                                $value = (string) $value;
+                                break;
+                        }
                     }
                 }
             }
-
             $args[] = $value;
         }
-
         return call_user_func_array($callback, $args);
     }
     throw new Exception("Invalid route callback provided.");

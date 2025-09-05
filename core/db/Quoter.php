@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Defines the contract for a database identifier quoter.
- * This allows the framework to handle different SQL syntax (e.g., ` vs ")
+ * This allows the StarterKit to handle different SQL syntax (e.g., ` vs ")
  * for different database drivers.
  */
 interface Quoter

@@ -3,12 +3,12 @@
 /**
  * Core Bootstrap File
  *
- * Initializes the framework, defines constants, and loads all helper functions with caching.
+ * Initializes the StarterKit, defines constants, and loads all helper functions with caching.
  */
 
 declare(strict_types=1);
 
-// Define framework paths if they haven't been defined yet.
+// Define StarterKit paths if they haven't been defined yet.
 if (!defined('ROOT_PATH')) {
     define('ROOT_PATH', dirname(__DIR__));
 }
@@ -99,7 +99,7 @@ if (!function_exists('init_cache')) {
 
 if (!function_exists('get_helper_files')) {
     /**
-     * Returns the list of all core framework and application helper files.
+     * Returns the list of all core StarterKit and application helper files.
      *
      * IMPROVEMENT: This function now reads an explicit manifest file (`app/helpers/_autoload.php`).
      * This provides clear, maintainable, and explicit control over which helpers are loaded,
@@ -109,7 +109,7 @@ if (!function_exists('get_helper_files')) {
      */
     function get_helper_files(): array
     {
-        // Core framework files that are always loaded
+        // Core StarterKit files that are always loaded
         $core_files = [
             CORE_PATH . '/kernel.php',
             CORE_PATH . '/router.php',

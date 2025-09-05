@@ -1,29 +1,37 @@
-<?php // app/views/system/users/create.php
+<?php
+// app/views/system/users/create.php
 
-// Data needed for the form partial
-$is_super_admin = session('is_app_admin');
-$tenant_options = [];
-
-if ($is_super_admin) {
-    $tenants = table('tenants')->orderBy('name')->get();
-    $tenant_options = array_column($tenants, 'name', 'id');
-}
-
-// Pass page-specific JS to the layout
-$page_scripts = js('users/users-form.js');
+// The route provides: $is_super_admin, $tenant_options, $available_roles, $user_role_ids (which is empty)
+$page_scripts = '<script type="application/json" id="role-assignment-data">' .
+    json_encode([
+        'available' => $available_roles,
+        'assigned' => $user_role_ids // Will be an empty array
+    ]) .
+    '</script>' . js('users/role-assignment.js') . js('users/users-form.js');
 ?>
 
-<!-- The SPA router uses this data-page-id to run the correct JS initializer -->
-<div id="user-create-page-container" data-page-id="user-form">
-    <?= card([
-        'header' => [
-            'title' => 'Create New User',
-            'subtitle' => 'Fill in the details to add a new user to the system.'
-        ],
-        'body' => render_partial(__DIR__ . '/_form.php', [
-            'is_super_admin' => $is_super_admin,
-            'tenant_options' => $tenant_options,
-            'form_action_url' => '/api/users' // API endpoint for creating
-        ])
-    ]) ?>
+<div id="user-create-page-container">
+    <?= form_open([
+        'id' => 'user-form',
+        'action' => '/api/users', // API endpoint for creating
+        'method' => 'POST',
+        'autocomplete' => 'off'
+    ]); ?>
+
+    <?php
+    // Render the shared form partial with all necessary data
+    echo render_partial(__DIR__ . '/_form.php', [
+        'is_super_admin' => $is_super_admin,
+        'tenant_options' => $tenant_options,
+        'available_roles' => $available_roles,
+        'user_role_ids' => $user_role_ids
+    ]);
+    ?>
+
+    <div class="form-actions mt-4">
+        <a href="/users" class="btn btn-secondary">Cancel</a>
+        <?= form_submit('Create User', ['attributes' => ['id' => 'save-user-btn']]); ?>
+    </div>
+
+    <?= form_close(); ?>
 </div>

@@ -15,9 +15,9 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 /**
  * Generates an Excel (.xlsx) file from an array of data and streams it for download.
  *
- * IMPROVEMENT: The hard `exit;` call has been removed. In a modern framework, this function
+ * IMPROVEMENT: The hard `exit;` call has been removed. In a modern StarterKit, this function
  * should ideally return a Response object (e.g., a Symfony StreamedResponse) to allow the
- * framework to handle the response lifecycle correctly. By removing `exit;`, we prevent the
+ * StarterKit to handle the response lifecycle correctly. By removing `exit;`, we prevent the
  * script from terminating prematurely, allowing any subsequent shutdown logic or middleware
  * to run. The calling controller or route handler is now responsible for ending the script.
  *

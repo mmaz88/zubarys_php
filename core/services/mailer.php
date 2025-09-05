@@ -209,8 +209,8 @@ function generate_pdf($template, $data = [], $options = [])
 
         // Set document info
         $mpdf->SetTitle($options['title'] ?? 'PDF Document');
-        $mpdf->SetAuthor($options['author'] ?? env('APP_NAME', 'PHP Mini Framework'));
-        $mpdf->SetCreator(env('APP_NAME', 'PHP Mini Framework'));
+        $mpdf->SetAuthor($options['author'] ?? env('APP_NAME', 'PHP Mini StarterKit'));
+        $mpdf->SetCreator(env('APP_NAME', 'PHP Mini StarterKit'));
 
         // Render PDF template
         $html = render_pdf_template($template, $data);

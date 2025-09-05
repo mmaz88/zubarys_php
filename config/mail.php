@@ -4,7 +4,7 @@ return [
     'driver' => env('MAIL_DRIVER', 'smtp'),
 
     'from_address' => env('MAIL_FROM_ADDRESS', 'noreply@example.com'),
-    'from_name' => env('MAIL_FROM_NAME', 'PHP Mini Framework'),
+    'from_name' => env('MAIL_FROM_NAME', 'PHP Mini StarterKit'),
 
     'smtp' => [
         'host' => env('MAIL_HOST', 'smtp.gmail.com'),
@@ -13,7 +13,7 @@ return [
         'password' => env('MAIL_PASSWORD'),
         'encryption' => env('MAIL_ENCRYPTION', 'tls'), // tls, ssl, or null
         'from_address' => env('MAIL_FROM_ADDRESS', 'noreply@example.com'),
-        'from_name' => env('MAIL_FROM_NAME', 'PHP Mini Framework'),
+        'from_name' => env('MAIL_FROM_NAME', 'PHP Mini StarterKit'),
 
         // Office 365 Settings
         'office365' => [

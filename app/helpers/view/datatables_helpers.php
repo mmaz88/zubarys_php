@@ -1,24 +1,15 @@
 <?php
-// app/helpers/view/datatables_helper.php
-declare(strict_types=1);
+// app/helpers/view/datatables_helpers.php
 
-// =============================================================================
-// DATATABLES HELPER FOR DATATABLES v2.x
-// =============================================================================
-/**
- * Modern DataTables helper for DataTables v2.x and Bootstrap 5 integration.
- * - Uses the new `layout` option instead of the deprecated `dom`.
- * - Provides strongly-typed, easy-to-use column definition helpers.
- * - Integrates with the custom-prefixed SCSS (`dt-` classes).
- */
 
 if (!function_exists('render_datatable')) {
     /**
      * Renders a DataTable container and its JSON configuration script.
+     * This version is lean and expects the parent view to create the card layout.
      *
      * @param string $id The HTML ID for the table element.
      * @param array $options Custom options to merge with defaults.
-     * @return string The HTML for the table and its configuration.
+     * @return string The HTML for the table and its configuration script.
      */
     function render_datatable(string $id, array $options = []): string
     {
@@ -31,49 +22,31 @@ if (!function_exists('render_datatable')) {
             'stateSave' => true,
             'deferRender' => true,
             'orderCellsTop' => true,
-
             'language' => [
                 'search' => '',
                 'searchPlaceholder' => 'Search records...',
                 'lengthMenu' => '_MENU_',
-                'processing' => '<div></div>', // Handled by CSS
+                'processing' => '<div></div>',
                 'emptyTable' => '<div class="text-center py-5"><ion-icon name="document-text-outline" class="text-muted" style="font-size: 2.5rem;"></ion-icon><p class="mt-2 text-muted">No data available in table</p></div>',
                 'zeroRecords' => '<div class="text-center py-5"><ion-icon name="search-circle-outline" class="text-muted" style="font-size: 2.5rem;"></ion-icon><p class="mt-2 text-muted">No matching records found</p></div>',
             ],
-
-            // DataTables v2+ `layout` option. Replaces `dom`.
-            // See: https://datatables.net/reference/option/layout
             'layout' => [
                 'topStart' => 'pageLength',
                 'topEnd' => 'search',
                 'bottomStart' => 'info',
                 'bottomEnd' => 'paging'
             ],
-
-            // Add export buttons if configured
-            'buttons' => !empty($options['buttons']) ? $options['buttons'] : null,
+            'buttons' => null,
         ];
 
-        // If buttons are present, adjust the layout to include them.
-        if (!empty($options['buttons'])) {
-            $defaultOptions['layout']['topStart'] = [
-                'pageLength',
-                ['buttons' => $options['buttons']]
-            ];
-            unset($options['buttons']); // Unset to prevent double-merge
-        }
+        $pageLayout = $options['layout'] ?? [];
+        unset($options['layout']);
 
         $finalOptions = array_replace_recursive($defaultOptions, $options);
-
-        // Add our custom prefixed wrapper class for styling
-        $finalOptions['dom'] = "<'dt-wrapper'<'dt-layout-row'<'dt-layout-cell'l><'dt-layout-cell'f>>t<'dt-layout-row'<'dt-layout-cell'i><'dt-layout-cell'p>>>";
-        if (isset($finalOptions['layout']['topStart']) && $finalOptions['layout']['topStart'] !== null) {
-            $finalOptions['dom'] = str_replace("<'dt-layout-cell'l>", "<'dt-layout-cell'B><'dt-layout-cell'l>", $finalOptions['dom']);
-        }
-
+        $finalOptions['layout'] = array_merge($defaultOptions['layout'], $pageLayout);
 
         $html = sprintf(
-            '<table id="%s" class="dt-table" style="width:100%%" role="grid"></table>',
+            '<div class="dt-wrapper"><table id="%s" class="dt-table" style="width:100%%" role="grid"></table></div>',
             htmlspecialchars($id)
         );
 

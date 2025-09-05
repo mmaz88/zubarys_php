@@ -42,7 +42,6 @@ function check_user_permissions(array $user): array
     return $can;
 }
 
-
 /**
  * Handles listing users for DataTables with server-side processing.
  * MODIFIED: Now injects a 'can' object into each user row for permission-based UI.
@@ -82,8 +81,19 @@ function handle_list_users(): string
     $jsonResponse = api_list_handler($config);
     $response = json_decode($jsonResponse, true);
 
-    if (isset($response['data'])) {
-        foreach ($response['data'] as &$user) {
+    // THE FIX: This logic now correctly finds the array of users
+    // regardless of whether it's a DataTables response or a generic API response.
+    $users_array = null;
+    if (isset($response['draw'])) {
+        // This is a DataTables response, data is at the top level.
+        $users_array = &$response['data'];
+    } elseif (isset($response['data']['data'])) {
+        // This is a generic paginated response, data is nested.
+        $users_array = &$response['data']['data'];
+    }
+
+    if ($users_array !== null) {
+        foreach ($users_array as &$user) {
             $user['can'] = check_user_permissions($user);
         }
     }
@@ -114,8 +124,8 @@ function handle_get_user(string $id): string
         if (!$permissions['view']) {
             return error('Forbidden. You do not have permission to view this user.', 403);
         }
-        $user['can'] = $permissions;
 
+        $user['can'] = $permissions;
 
         $roles = table('roles')
             ->select('roles.name')
@@ -124,8 +134,8 @@ function handle_get_user(string $id): string
             ->orderBy('roles.name', 'ASC')
             ->get();
         $user['roles'] = array_column($roles, 'name');
-        unset($user['password']);
 
+        unset($user['password']);
         return success($user);
     } catch (Throwable $e) {
         write_log("Get User API Error: " . $e->getMessage(), 'critical');
@@ -138,17 +148,16 @@ function handle_get_user(string $id): string
  */
 function handle_create_user(): string
 {
+    db()->beginTransaction();
     try {
         $data = input();
         $isSuperAdmin = session('is_app_admin');
-
         $rules = [
             'name' => 'required|min:3|max:100',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:8|confirmed',
         ];
 
-        // THE FIX: Super admins must specify a tenant. For Tenant Admins, it's automatic.
         if ($isSuperAdmin) {
             $rules['tenant_id'] = 'required|exists:tenants,id';
         }
@@ -158,12 +167,13 @@ function handle_create_user(): string
             return validation_error($errors);
         }
 
-        // Determine the tenant ID automatically for non-super admins.
         $tenantId = $isSuperAdmin ? $data['tenant_id'] : session('tenant_id');
+
         if (!$isSuperAdmin && !$tenantId) {
             return error('You must belong to a tenant to create a user.', 403);
         }
 
+        // 1. Insert the new user's details.
         $userId = generate_uuidv7();
         $currentTime = date('Y-m-d H:i:s');
         $insertData = [
@@ -179,21 +189,40 @@ function handle_create_user(): string
             'updated_at' => $currentTime,
         ];
         table('users')->insert($insertData);
+
+        // ===== NEW: Assign Roles on Create =====
+        // 2. Insert the new role assignments from the form.
+        $roleIds = $data['roles'] ?? [];
+        if (!empty($roleIds) && is_array($roleIds)) {
+            $cleanRoleIds = array_filter(array_map('intval', $roleIds), fn($roleId) => $roleId > 0);
+            if (!empty($cleanRoleIds)) {
+                $rolesToInsert = [];
+                foreach ($cleanRoleIds as $roleId) {
+                    $rolesToInsert[] = ['user_id' => $userId, 'role_id' => $roleId];
+                }
+                table('user_roles')->insert($rolesToInsert);
+            }
+        }
+        // ===== END: Assign Roles =====
+
+        db()->commit();
+
         $newUser = table('users')->where('id', '=', $userId)->first();
         unset($newUser['password']);
         return success($newUser, 'User created successfully.', 201);
     } catch (Throwable $e) {
+        db()->rollBack();
         write_log("User Create API Error: " . $e->getMessage(), 'critical');
         return error('An internal server error occurred.', 500);
     }
 }
 
-
 /**
- * Handles updating an existing user.
+ * Handles updating an existing user and syncing their roles.
  */
 function handle_update_user(string $id): string
 {
+    db()->beginTransaction();
     try {
         $data = input();
         $isSuperAdmin = session('is_app_admin');
@@ -203,7 +232,6 @@ function handle_update_user(string $id): string
             return error('User not found.', 404);
         }
 
-        // Security Check: Tenant admins can only edit users in their own tenant.
         if (!$isSuperAdmin && $userToUpdate['tenant_id'] !== session('tenant_id')) {
             return error('Forbidden. You do not have permission to edit this user.', 403);
         }
@@ -236,19 +264,37 @@ function handle_update_user(string $id): string
             'updated_by' => session('user_id'),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
+
         if (!empty($data['password'])) {
             $updateData['password'] = hash_password($data['password']);
         }
+
         table('users')->where('id', '=', $id)->update($updateData);
+
+        // Sync User Roles
+        table('user_roles')->where('user_id', '=', $id)->delete();
+        $roleIds = $data['roles'] ?? [];
+        if (!empty($roleIds) && is_array($roleIds)) {
+            $cleanRoleIds = array_filter(array_map('intval', $roleIds), fn($roleId) => $roleId > 0);
+            if (!empty($cleanRoleIds)) {
+                $rolesToInsert = [];
+                foreach ($cleanRoleIds as $roleId) {
+                    $rolesToInsert[] = ['user_id' => $id, 'role_id' => $roleId];
+                }
+                table('user_roles')->insert($rolesToInsert);
+            }
+        }
+
+        db()->commit();
         $updatedUser = table('users')->where('id', '=', $id)->first();
         unset($updatedUser['password']);
         return success($updatedUser, 'User updated successfully.');
     } catch (Throwable $e) {
-        write_log("User Update API Error: " . $e->getMessage(), 'critical');
-        return error('An internal server error occurred.', 500);
+        db()->rollBack();
+        write_log("User Update API Error for user ID {$id}: " . $e->getMessage(), 'critical');
+        return error('An internal server error occurred while updating the user.', 500);
     }
 }
-
 
 /**
  * Handles deleting a user.
@@ -259,6 +305,7 @@ function handle_delete_user(string $id): string
         if ($id === session('user_id')) {
             return error('You cannot delete your own account.', 409);
         }
+
         $userToDelete = table('users')->where('id', '=', $id)->first();
         if (!$userToDelete) {
             return error('User not found.', 404);
@@ -272,6 +319,7 @@ function handle_delete_user(string $id): string
         if ($deletedRows > 0) {
             return success(null, 'User deleted successfully.');
         }
+
         return error('Failed to delete user.', 500);
     } catch (Throwable $e) {
         write_log("User Delete API Error: " . $e->getMessage(), 'critical');

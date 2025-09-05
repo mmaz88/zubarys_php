@@ -9,14 +9,14 @@ $user_name = h(session('user_name', 'Developer'));
     <!-- Welcome Header -->
     <div class="mb-4">
         <h1 class="h2">Welcome, <?= $user_name ?>!</h1>
-        <p class="text-muted">You've successfully logged into the PHP Functional Mini-Framework.</p>
+        <p class="text-muted">You've successfully logged into the PHP Functional Mini-StarterKit.</p>
     </div>
 
     <!-- About This Project Card -->
     <?php
     echo card([
         'header' => [
-            'title' => 'About This Framework',
+            'title' => 'About This StarterKit',
             'subtitle' => 'A lightweight foundation for modern PHP applications.'
         ],
         'body' => '

@@ -1,8 +1,8 @@
-# PHP Functional Mini-Framework
+# PHP Functional Mini-StarterKit
 
-A lightweight, API-first web application framework built using a functional programming paradigm in PHP. This project serves as a lean, understandable, and multi-tenant capable foundation for modern web applications.
+A lightweight, API-first web application StarterKit built using a functional programming paradigm in PHP. This project serves as a lean, understandable, and multi-tenant capable foundation for modern web applications.
 
-## About This Framework
+## About This StarterKit
 
 This project is an exploration of building a modern web application without relying on a traditional MVC structure. The core is built with simple, reusable helper functions to promote clarity, performance, and ease of use. It's designed to be a solid starting point for developers who appreciate a minimalist and flexible architecture.
 
@@ -27,8 +27,8 @@ This project is an exploration of building a modern web application without rely
 1.  **Clone the repository:**
 
     ```bash
-    git clone <your-repository-url>
-    cd php-functional-mini-framework
+    git clone https://github.com/mmaz88/zubarys_php
+    cd php-functional-mini-StarterKit
     ```
 
 2.  **Install PHP dependencies:**

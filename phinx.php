@@ -2,7 +2,7 @@
 
 // phinx.php
 
-// Load the framework's bootstrap file to access helpers like config()
+// Load the StarterKit's bootstrap file to access helpers like config()
 require_once __DIR__ . '/vendor/autoload.php';
 
 // Get the default connection name and all connection details
@@ -13,7 +13,7 @@ if (!$db_config) {
     throw new \RuntimeException("Database configuration for '{$default_connection}' not found.");
 }
 
-// Map framework config to Phinx config structure
+// Map StarterKit config to Phinx config structure
 $driver_map = [
     'mysql' => 'mysql',
     'pgsql' => 'pgsql',

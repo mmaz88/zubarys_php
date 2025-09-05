@@ -1,31 +1,38 @@
-<?php // app/views/system/users/edit.php
+<?php
+// app/views/system/users/edit.php
 
-// Data needed for the form partial
-$is_super_admin = session('is_app_admin'); // <-- FIX: Define the variable
-$tenant_options = [];
-
-if ($is_super_admin) {
-    $tenants = table('tenants')->orderBy('name')->get();
-    $tenant_options = array_column($tenants, 'name', 'id');
-}
-
-// Pass page-specific JS to the layout
-$page_scripts = js('users/users-form.js');
-
-// The $user variable is passed from the route that renders this view
+// The route provides: $user, $is_super_admin, $tenant_options, $available_roles, $user_role_ids
+$page_scripts = '<script type="application/json" id="role-assignment-data">' .
+    json_encode([
+        'available' => $available_roles,
+        'assigned' => $user_role_ids
+    ]) .
+    '</script>' . js('users/role-assignment.js') . js('users/users-form.js');
 ?>
 
-<div id="user-edit-page-container" data-page-id="user-form" data-user-id="<?= h($user['id']) ?>">
-    <?= card([
-        'header' => [
-            'title' => 'Edit User',
-            'subtitle' => 'Editing profile for ' . h($user['name'])
-        ],
-        'body' => render_partial(__DIR__ . '/_form.php', [
-            'user' => $user,
-            'is_super_admin' => $is_super_admin, // <-- FIX: Pass the variable to the partial
-            'tenant_options' => $tenant_options,
-            'form_action_url' => '/api/users/' . h($user['id']) // API endpoint for updating
-        ])
-    ]) ?>
+<div id="user-edit-page-container" data-user-id="<?= h($user['id']) ?>">
+     <?= form_open([
+        'id' => 'user-form',
+        'action' => '/api/users/' . h($user['id']), // API endpoint for updating
+        'method' => 'POST',
+        'autocomplete' => 'off'
+    ]); ?>
+
+    <?php
+    // Render the shared form partial with all necessary data
+    echo render_partial(__DIR__ . '/_form.php', [
+        'user' => $user,
+        'is_super_admin' => $is_super_admin,
+        'tenant_options' => $tenant_options,
+        'available_roles' => $available_roles,
+        'user_role_ids' => $user_role_ids
+    ]);
+    ?>
+
+    <div class="form-actions mt-4">
+        <a href="/users" class="btn btn-secondary">Cancel</a>
+        <?= form_submit('Update User', ['attributes' => ['id' => 'save-user-btn']]); ?>
+    </div>
+    
+    <?= form_close(); ?>
 </div>

@@ -12,7 +12,7 @@ function get_current_path(): string
  *
  * IMPROVEMENT: Decoupled hardcoded Bootstrap tooltip attributes. The menu item array
  * can now accept an 'attributes' key to pass in any custom HTML attributes, making
- * the component more reusable and framework-agnostic.
+ * the component more reusable and StarterKit-agnostic.
  *
  * @param array $menu The navigation menu structure.
  * @param array $brand_config Configuration for the brand logo/name.
