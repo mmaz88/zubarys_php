@@ -9,7 +9,7 @@
 # Ignore dependency folders managed by Composer and npm.
 /vendor/
 /node_modules/
-/src/
+
 /_export*
 *.rar
 *.zip

@@ -1,0 +1,29 @@
+// src/scss/layout/_main.scss
+/* ==========================================================================
+   LAYOUT: MAIN WRAPPER & CONTENT AREA
+   ========================================================================== */
+
+.app-container {
+  height: 100vh; /* ADD THIS LINE */
+  // The existing 'd-flex' class will handle the rest.
+}
+
+.main-content-wrapper {
+  transition: margin-left 0.25s ease-in-out;
+  margin-left: 240px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+main.app-content {
+  flex-grow: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+@media (min-width: 768px) {
+  main.app-content {
+    padding: 2.5rem;
+  }
+}

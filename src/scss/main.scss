@@ -1,0 +1,111 @@
+// FILE: src/scss/main.scss
+/* ==========================================================================
+   MAIN STYLESHEET
+   This file imports all other SCSS partials.
+   ========================================================================== */
+
+// 1. Core - Your custom variables must come first to override Bootstrap's defaults.
+@import "core/variables";
+
+// 2. Vendor Imports - Import Bootstrap framework from node_modules.
+// This provides the foundation for components like dropdowns, modals, etc.
+@import "../../node_modules/bootstrap/scss/bootstrap";
+
+// 3. Core (Continued) - Reset and base styles apply after the framework.
+@import "core/reset";
+@import "core/base";
+
+// 4. Layout - Main structure (sidebar, header, etc.).
+@import "layout/main";
+@import "layout/header";
+@import "layout/sidebar";
+
+// 5. Components - Your custom component styles which can extend or override Bootstrap.
+@import "components/alert";
+@import "components/badge";
+@import "components/buttons";
+@import "components/card";
+@import "components/dropdown";
+@import "components/filter-popup";
+@import "components/form";
+@import "components/modal";
+@import "components/pagination";
+@import "components/datatables-advanced";
+@import "components/tooltip";
+@import "components/permissions-grid";
+@import "components/dual-listbox";
+
+// 6. Utilities - Helper classes
+@import "utilities/utilities";
+
+/* ==========================================================================
+   SPECIFIC OVERRIDES & PRINT
+   ========================================================================== */
+
+// AG Grid specific overrides
+.ag-theme-alpine .ag-header {
+  background-color: hsl(var(--secondary));
+  border-bottom: 2px solid hsl(var(--primary));
+}
+
+.ag-theme-alpine .ag-header-cell-label {
+  font-weight: 600;
+  color: hsl(var(--secondary-foreground));
+}
+
+// Screen reader only content
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// Print styles
+@media print {
+  .sidebar,
+  .app-header,
+  .btn,
+  .dropdown,
+  .flash-messages,
+  .modal-overlay,
+  .table-controls,
+  .table-pagination {
+    display: none !important;
+  }
+
+  .main-content-wrapper {
+    margin-left: 0 !important;
+  }
+
+  body,
+  .card,
+  .table {
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  .card,
+  .table,
+  .table th,
+  .table td {
+    border: 1px solid #dee2e6 !important;
+  }
+}

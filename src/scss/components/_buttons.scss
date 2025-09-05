@@ -1,0 +1,197 @@
+/* ==========================================================================
+   COMPONENT: BUTTONS (v2 - Fully Theme-Aware)
+   - Hover states for all variants now use the correct CSS variables.
+   - Includes loading states, icon spacing, and size variations.
+========================================================================== */
+
+// --- BASE BUTTON STYLES ---
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.625rem 1rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+
+  // Consistent focus state
+  &:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  // Subtle lift effect on hover
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  // Disabled state
+  &:disabled,
+  &.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  // Loading spinner state
+  &.loading {
+    color: transparent;
+    pointer-events: none;
+
+    &::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor; // Inherits color from parent
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      color: inherit;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// --- BUTTON VARIANTS ---
+
+.btn-primary {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+
+  // CORRECTED: Uses the theme-aware hover variable
+  &:hover:not(:disabled) {
+    background-color: hsl(var(--primary-hover));
+  }
+
+  &.loading::after {
+    border-top-color: hsl(var(--primary-foreground));
+  }
+}
+
+.btn-secondary {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-color: hsl(var(--border));
+
+  // CORRECTED: Uses the --accent variable for a distinct hover state
+  &:hover:not(:disabled) {
+    background-color: hsl(var(--accent));
+  }
+}
+
+.btn-destructive {
+  background-color: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+
+  // NEW: Added a consistent hover state
+  &:hover:not(:disabled) {
+    // A simple brightness filter works well here.
+    // For a more robust system, a `--destructive-hover` variable could be added.
+    filter: brightness(90%);
+  }
+}
+
+.btn-outline-secondary {
+  border-color: hsl(var(--border));
+  color: hsl(var(--muted-foreground));
+  background: transparent;
+
+  // CORRECTED: Uses --accent for a background fill on hover
+  &:hover:not(:disabled) {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    border-color: hsl(var(--accent));
+  }
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: hsl(var(--foreground));
+
+  &:hover:not(:disabled) {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+}
+
+// --- SIZE VARIATIONS ---
+.btn-sm {
+  height: 32px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.btn-lg {
+  height: 48px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.btn-icon {
+  width: 40px;
+  padding: 0;
+
+  &.btn-sm {
+    width: 32px;
+  }
+  &.btn-lg {
+    width: 48px;
+  }
+}
+
+// --- ICON SPACING ---
+.btn ion-icon {
+  font-size: 1.1em;
+  flex-shrink: 0;
+}
+
+.btn span + ion-icon {
+  margin-left: 0.5rem;
+}
+.btn ion-icon + span {
+  margin-left: 0.5rem;
+}
+
+// --- BUTTON GROUPS ---
+.btn-group {
+  display: inline-flex;
+
+  .btn {
+    border-radius: 0;
+    &:hover,
+    &:focus {
+      z-index: 1; // Ensure the hovered button's border is on top
+    }
+    &:not(:first-child) {
+      margin-left: -1px; // Collapse borders
+    }
+    &:first-child {
+      border-top-left-radius: var(--radius);
+      border-bottom-left-radius: var(--radius);
+    }
+    &:last-child {
+      border-top-right-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+    }
+  }
+}

@@ -1,0 +1,63 @@
+/* ==========================================================================
+   CORE: BASE STYLES (Typography, Body)
+   ========================================================================== */
+
+/*
+  - Apply a natural box layout model to all elements.
+  - Set the default background and text color from our CSS variables.
+  - Use the defined sans-serif font stack for the entire application.
+  - Set a default font size for the body.
+*/
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+/* Headings and Typography */
+h1,
+.h1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+h2,
+.h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+h3,
+.h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+p {
+  color: hsl(var(--muted-foreground));
+}
+
+a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Global Focus State */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* Utilities used by Bootstrap JS (if any) */
+.fade {
+  transition: opacity 0.15s linear;
+}
+
+.fade:not(.show) {
+  opacity: 0;
+}

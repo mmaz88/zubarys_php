@@ -1,0 +1,47 @@
+// FILE: src/scss/components/_tooltip.scss
+/* ==========================================================================
+   COMPONENT: TOOLTIP (Bootstrap Override)
+   - Ensures tooltips are always on top and match the Shadcn theme.
+   - They do not inherit styles due to being appended to the body by default.
+   ========================================================================== */
+.tooltip {
+  // Use our design system variables for a consistent, modern look
+  --bs-tooltip-zindex: 1080; // Ensure it's on top of modals (1055)
+  --bs-tooltip-max-width: 250px;
+  --bs-tooltip-padding-y: 0.5rem;
+  --bs-tooltip-padding-x: 0.75rem;
+  --bs-tooltip-font-size: 0.8rem;
+  --bs-tooltip-color: hsl(var(--popover-foreground));
+  --bs-tooltip-bg: hsl(var(--popover));
+  --bs-tooltip-border-radius: var(--radius);
+  --bs-tooltip-opacity: 1;
+
+  // Use a modern shadow consistent with other popovers
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.tooltip-inner {
+  // Bootstrap's default inner element. We don't need a separate shadow here.
+  box-shadow: none;
+}
+
+// Ensure the tooltip arrow matches our custom background.
+.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before,
+.bs-tooltip-top .tooltip-arrow::before {
+  border-top-color: var(--bs-tooltip-bg);
+}
+
+.bs-tooltip-auto[data-popper-placement^="right"] .tooltip-arrow::before,
+.bs-tooltip-end .tooltip-arrow::before {
+  border-right-color: var(--bs-tooltip-bg);
+}
+
+.bs-tooltip-auto[data-popper-placement^="bottom"] .tooltip-arrow::before,
+.bs-tooltip-bottom .tooltip-arrow::before {
+  border-bottom-color: var(--bs-tooltip-bg);
+}
+
+.bs-tooltip-auto[data-popper-placement^="left"] .tooltip-arrow::before,
+.bs-tooltip-start .tooltip-arrow::before {
+  border-left-color: var(--bs-tooltip-bg);
+}

@@ -1,0 +1,75 @@
+// FILE: src/scss/components/_filter-popup.scss
+/* ==========================================================================
+   COMPONENT: AG Grid Style Filter UI
+   ========================================================================== */
+.filter-ui {
+  position: relative;
+}
+
+.filter-menu-button {
+  background: transparent;
+  border: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover,
+  &.active {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
+  &.active-filter {
+    color: hsl(var(--primary));
+    background-color: hsl(var(--primary-foreground));
+  }
+}
+
+.filter-popup {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.2s, transform 0.2s;
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+// NEW STYLES for the filter controls within the popup
+.filter-control-wrapper {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; // Replaces space-y-2
+}
+
+.filter-popup-title {
+  font-size: 0.75rem; // text-xs
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+.filter-popup-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}

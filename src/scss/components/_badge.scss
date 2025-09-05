@@ -1,0 +1,36 @@
+// FILE: src/scss/components/_badge.scss
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.6em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+
+.badge-secondary {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-color: hsl(var(--border));
+}
+
+.badge-success {
+  background-color: hsl(var(--green) / 0.1);
+  color: hsl(var(--green));
+}
+
+.badge-warning {
+  background-color: hsl(var(--orange) / 0.1);
+  color: hsl(var(--orange));
+}
+
+.badge-destructive {
+  background-color: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+}

@@ -1,0 +1,56 @@
+/* ==========================================================================
+   COMPONENT: CARD
+   ========================================================================== */
+
+.card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 2px);
+  overflow: hidden; /* This is the property causing the issue */
+}
+
+/* 
+  FIX: Utility class to be added to cards containing AG Grid or other
+  components that need their popups/menus to break out of the card's bounds.
+*/
+.card.overflow-visible {
+  overflow: visible;
+}
+
+.card-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.card-title + .card-subtitle {
+  margin-top: 0.25rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-body-flush .card-body {
+  padding: 0;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid hsl(var(--border));
+  background-color: hsl(var(--muted));
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}

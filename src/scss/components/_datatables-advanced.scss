@@ -1,0 +1,440 @@
+/* ==========================================================================
+   COMPONENT: DATA TABLES (v2.x COMPATIBLE)
+   - Prefixed with `dt-` to prevent conflicts.
+   - Uses modern selectors for the `layout` option.
+   - Styled to match the Bootstrap/Shadcn theme variables.
+========================================================================== */
+.table.dt-table {
+  // Override Bootstrap's CSS variables with your theme's variables
+  --bs-table-bg: transparent;
+  --bs-table-color: hsl(var(--foreground));
+  --bs-table-border-color: var(--dt-border-color); // Use your custom variable
+  --bs-table-striped-bg: var(--dt-striped-bg); // Use your custom variable
+  --bs-table-hover-bg: var(--dt-hover-bg); // Use your custom variable
+  --bs-table-hover-color: hsl(var(--foreground));
+
+  // Ensure header and footer have no top border to avoid double lines
+  & > :not(caption) > * > * {
+    border-bottom-width: 1px; // Ensure consistent border width
+  }
+  thead {
+    border-bottom: 2px solid var(--dt-border-color);
+  }
+  thead th {
+    border-bottom: 0; // The thead row itself has the border
+  }
+}
+
+// Main wrapper for the entire DataTable instance
+.dt-wrapper {
+  --dt-row-height: 52px;
+  --dt-header-bg: hsl(var(--card));
+  --dt-header-color: hsl(var(--muted-foreground));
+  --dt-border-color: hsl(var(--border));
+  --dt-striped-bg: hsl(var(--muted) / 0.4);
+  --dt-hover-bg: hsl(var(--muted) / 0.6);
+  --dt-control-height: 2.5rem; // 40px
+  --dt-control-padding-x: 0.75rem;
+
+  .dt-container > .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  // Loading state overlay
+  &.dt-loading {
+    position: relative;
+    pointer-events: none;
+
+    .dt-table,
+    .dt-layout-row {
+      opacity: 0.5;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 2rem;
+      height: 2rem;
+      border: 3px solid hsl(var(--border));
+      border-top-color: hsl(var(--primary));
+      border-radius: 50%;
+      animation: dt-spin 1s linear infinite;
+      z-index: 10;
+    }
+  }
+}
+
+@keyframes dt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   TABLE ELEMENT STYLING
+========================================================================== */
+.dt-table {
+  width: 100% !important;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  thead th {
+    height: var(--dt-row-height);
+    padding: 0 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--dt-header-color);
+    background-color: var(--dt-header-bg);
+    border-bottom: 2px solid var(--dt-border-color);
+    white-space: nowrap;
+    vertical-align: middle;
+    user-select: none;
+
+    /* === UPDATED: IONICONS FOR SORTING === */
+    &.dt-orderable-asc,
+    &.dt-orderable-desc {
+      cursor: pointer;
+      position: relative;
+      padding-right: 2rem; /* Make space for the icon */
+
+      &::after {
+        content: ""; /* Must be empty */
+        position: absolute;
+        top: 50%;
+        right: 0.75rem;
+        transform: translateY(-50%);
+        width: 1em;
+        height: 1em;
+        transition: opacity 0.2s, background-color 0.2s;
+
+        /* Default state: Unsorted (swap-vertical icon) */
+        background-color: hsl(var(--muted-foreground));
+        opacity: 0.4;
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='40' d='M464 208L352 96 240 208m112-94.82V416M48 304l112 112 112-112M160 401.18V96'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+      }
+    }
+
+    /* Active sort state */
+    &.dt-ordering-asc,
+    &.dt-ordering-desc {
+      &::after {
+        opacity: 1;
+        background-color: hsl(var(--primary)); /* Active color */
+      }
+    }
+
+    /* Ascending sort icon (arrow-up) */
+    &.dt-ordering-asc::after {
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='48' d='M112 244l144-144 144 144M256 120v292'/%3E%3C/svg%3E");
+    }
+
+    /* Descending sort icon (arrow-down) */
+    &.dt-ordering-desc::after {
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round' stroke-width='48' d='M112 268l144 144 144-144M256 392V100'/%3E%3C/svg%3E");
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--dt-border-color);
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:nth-of-type(odd) {
+      background-color: var(--dt-striped-bg);
+    }
+
+    &:hover {
+      background-color: var(--dt-hover-bg);
+    }
+  }
+
+  tbody td {
+    height: var(--dt-row-height);
+    padding: 0.5rem 1rem;
+    vertical-align: middle;
+
+    &.dataTables_empty {
+      text-align: center;
+      padding: 3rem;
+      color: hsl(var(--muted-foreground));
+    }
+  }
+}
+
+/* ==========================================================================
+   LAYOUT: HEADER & FOOTER CONTROLS
+========================================================================== */
+.dt-layout-row {
+  display: flex;
+  justify-content: space-between; // This is the default from Bootstrap
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 0.5rem;
+
+  // ADD THIS OVERRIDE FOR THE TOP ROW
+  &:first-child {
+    justify-content: flex-start; // Change from space-between to flex-start
+  }
+}
+
+/* ==========================================================================
+   FEATURE: SEARCH INPUT
+========================================================================== */
+.dt-search {
+  position: relative;
+  max-width: 320px;
+  flex: 1 1 auto;
+
+  label {
+    display: none;
+  }
+
+  input {
+    width: 100%;
+    height: var(--dt-control-height);
+    padding-left: 2.5rem;
+    padding-right: var(--dt-control-padding-x);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+
+    &::placeholder {
+      color: hsl(var(--muted-foreground));
+    }
+
+    &:focus {
+      outline: none;
+      border-color: hsl(var(--ring));
+      box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+    }
+  }
+
+  // Search icon
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='hsl(215.4 16.3% 46.9%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3ccircle cx='11' cy='11' r='8'/%3e%3cline x1='21' y1='21' x2='16.65' y2='16.65'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+}
+
+/* ==========================================================================
+   FEATURE: PAGE LENGTH (SHOW ENTRIES)
+========================================================================== */
+.dt-length {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    font-weight: 500;
+  }
+
+  select {
+    height: var(--dt-control-height);
+    padding: 0 2rem 0 var(--dt-control-padding-x);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--card));
+    color: hsl(var(--foreground));
+    font-size: 0.875rem;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 5rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 12px 8px;
+
+    &:focus {
+      outline: none;
+      border-color: hsl(var(--ring));
+      box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+    }
+  }
+}
+
+/* ==========================================================================
+   FEATURE: PAGINATION
+========================================================================== */
+.dt-paging {
+  .pagination {
+    margin-bottom: 0;
+  } // Bootstrap override
+
+  .page-item .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--dt-control-height);
+    height: var(--dt-control-height);
+    padding: 0 0.75rem;
+    margin: 0 2px;
+    border-radius: var(--radius);
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+
+    &:hover {
+      background-color: hsl(var(--accent));
+      border-color: hsl(var(--accent));
+    }
+    &:focus {
+      box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+    }
+  }
+
+  .page-item.active .page-link {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-weight: 600;
+  }
+
+  .page-item.disabled .page-link {
+    opacity: 0.6;
+    background-color: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+    border-color: hsl(var(--border));
+  }
+}
+
+/* ==========================================================================
+   FEATURE: INFO TEXT
+========================================================================== */
+.dt-info {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  font-weight: 500;
+  padding-left: 0.5rem;
+}
+
+/* ==========================================================================
+   EXTENSION: BUTTONS
+========================================================================== */
+.dt-buttons .btn {
+  height: var(--dt-control-height);
+  font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   FEATURE: SELECTION CHECKBOXES
+========================================================================== */
+.dt-select-checkbox {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.25rem;
+  background-color: hsl(var(--background));
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  vertical-align: middle;
+
+  &:checked {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0.1rem;
+      left: 0.3rem;
+      width: 0.25rem;
+      height: 0.55rem;
+      border: solid hsl(var(--primary-foreground));
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+
+  &:indeterminate {
+    background-color: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+    &::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0.6rem;
+      height: 2px;
+      background-color: hsl(var(--primary-foreground));
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+  }
+}
+
+/* ==========================================================================
+   CUSTOM RENDERER STYLES
+========================================================================== */
+.dt-actions-cell .btn-icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.dt-user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid hsl(var(--border));
+}
+
+.dt-user-avatar-placeholder {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.dt-boolean-icon {
+  font-size: 1.25rem;
+  &.text-success {
+    color: hsl(var(--green));
+  }
+  &.text-muted {
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+/* ==========================================================================
+   DARK MODE ADJUSTMENTS
+========================================================================== */
+[data-theme="dark"] {
+  .dt-search::before {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='hsl(215 20.2% 65.1%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3ccircle cx='11' cy='11' r='8'/%3e%3cline x1='21' y1='21' x2='16.65' y2='16.65'/%3e%3c/svg%3e");
+  }
+  .dt-length select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  }
+}

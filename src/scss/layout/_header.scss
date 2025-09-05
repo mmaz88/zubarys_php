@@ -1,0 +1,51 @@
+// src/scss/layout/_header.scss
+/* ==========================================================================
+   LAYOUT: APP HEADER
+   ========================================================================== */
+.app-header {
+  background-color: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+  height: 60px;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  flex-shrink: 0;
+}
+
+.header-left .h4 {
+  margin-bottom: 0;
+  font-size: 1.25rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+// NEW STYLES FOR USER DROPDOWN TRIGGER
+.user-dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: hsl(var(--foreground));
+  padding: 0.25rem; // Add some padding for hover effect
+  border-radius: var(--radius);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: hsl(var(--accent));
+    text-decoration: none;
+  }
+
+  // Ensure Bootstrap's dropdown arrow is styled correctly
+  &::after {
+    margin-left: 0.5rem;
+    color: hsl(var(--muted-foreground));
+  }
+}

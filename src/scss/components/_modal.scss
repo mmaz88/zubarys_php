@@ -1,0 +1,203 @@
+/* ==========================================================================
+   COMPONENT: MODAL (REWRITTEN FOR STABILITY & SMOOTH ANIMATION)
+   - Fixes animation glitches by consolidating transitions onto .modal-dialog.
+   - Ensures robust centering and responsiveness.
+   - Cleaned up for better performance in SPA environments.
+   ========================================================================== */
+
+// --- 1. MODAL BACKDROP ---
+// Provides the semi-transparent, blurred background for the modal.
+.modal-backdrop {
+  background-color: hsla(var(--background), 0.85);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  // Bootstrap's fade transition for the backdrop itself
+  &.fade {
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+  }
+
+  &.show {
+    opacity: 1;
+  }
+}
+
+// --- 2. MODAL CONTAINER (.modal) ---
+// This is the top-level wrapper. Its main job is to center the .modal-dialog.
+// CRITICAL: It should NOT have its own transform animations, as that conflicts
+// with the dialog's animation, causing glitches.
+.modal {
+  // Uses flexbox for robust vertical and horizontal centering.
+  &.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem; // Provides spacing on small screens
+  }
+
+  // This block controls the animation of the DIALOG, not the modal container itself.
+  // When the modal is fading in...
+  &.fade {
+    .modal-dialog {
+      // Initial state: slightly scaled down, moved up, and invisible.
+      transform: translateY(-30px) scale(0.97);
+      opacity: 0;
+    }
+  }
+
+  // When the modal is shown...
+  &.show {
+    .modal-dialog {
+      // Final state: centered, full size, and fully visible.
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+}
+
+// --- 3. MODAL DIALOG (.modal-dialog) ---
+// This is the element that contains the modal content and is animated.
+.modal-dialog {
+  position: relative; // Switched from flex to relative for simpler context
+  margin: 0;
+  width: 100%;
+  max-width: 95%;
+
+  // This is the single source of truth for the animation.
+  transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+
+  @media (min-width: 576px) {
+    max-width: 500px;
+  }
+
+  // Size variants
+  &.modal-sm {
+    max-width: 400px;
+  }
+  &.modal-lg {
+    max-width: 800px;
+  }
+  &.modal-xl {
+    max-width: 1140px;
+  }
+}
+
+// --- 4. MODAL CONTENT ---
+// The styled "card" that holds the header, body, and footer.
+.modal-content {
+  width: 100%;
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: 0 10px 30px -5px hsla(var(--foreground), 0.1);
+  overflow: hidden; // Clips content within the rounded corners
+  display: flex;
+  flex-direction: column;
+}
+
+// --- 5. MODAL HEADER ---
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
+// Close Button (btn-close)
+.btn-close {
+  padding: 0.5rem;
+  margin: -0.5rem; // Negative margin to align properly
+  border: none;
+  background: transparent;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  color: hsl(var(--foreground));
+
+  &:hover,
+  &:focus {
+    opacity: 1;
+    transform: scale(1.1);
+    color: hsl(var(--primary));
+  }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+}
+
+// --- 6. MODAL BODY ---
+.modal-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+  overflow-y: auto;
+  // Set a max-height to ensure body scrolls on long content, not the page
+  max-height: calc(85vh - 150px); // Adjust 150px based on header/footer height
+  -webkit-overflow-scrolling: touch;
+
+  // Improve text readability
+  line-height: 1.6;
+
+  // Better spacing for nested elements
+  > *:first-child {
+    margin-top: 0;
+  }
+  > *:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// --- 7. MODAL FOOTER ---
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid hsl(var(--border));
+  background-color: hsl(var(--muted) / 0.5);
+  flex-shrink: 0;
+
+  // Stack buttons on mobile for better usability
+  @media (max-width: 576px) {
+    flex-direction: column-reverse;
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+// --- 8. ACCESSIBILITY & UTILITIES ---
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .modal-dialog,
+  .modal-backdrop {
+    transition: none;
+  }
+}
+
+// Fullscreen modal adjustments
+.modal-fullscreen {
+  .modal-content {
+    border-radius: 0;
+    border: none;
+  }
+}
+
+// Dark mode adjustments
+[data-theme="dark"] .modal-content {
+  box-shadow: 0 10px 30px -5px hsla(0, 0%, 0%, 0.3);
+}
