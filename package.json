@@ -1,0 +1,23 @@
+{
+  "name": "zubarysphp",
+  "version": "1.0.0",
+  "description": "Zubary's way of php",
+  "main": "index.js",
+  "devDependencies": {
+    "bootstrap": "^5.3.8",
+    "sass": "^1.77.2"
+  },
+  "scripts": {
+    "build:css": "sass src/scss/main.scss public/assets/css/main.css --style=compressed --quiet",
+    "watch:css": "sass src/scss/main.scss public/assets/css/main.css --watch --quiet",
+    "export": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_all.ps1",
+    "js": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_js.ps1",
+    "css": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_css.ps1",
+    "scss": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_scss.ps1",
+    "php": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_php.ps1",
+    "app": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_app.ps1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

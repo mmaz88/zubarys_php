@@ -1,0 +1,50 @@
+{
+    "name": "zubary/php",
+    "description": "Zubary's way of php",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "MughiraZubary",
+            "email": "zubary@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.9",
+        "monolog/monolog": "^3.9",
+        "nikic/fast-route": "^1.3",
+        "phpmailer/phpmailer": "^6.10",
+        "phpoffice/phpspreadsheet": "^5.0",
+        "robmorgan/phinx": "^0.13.4",
+        "vlucas/phpdotenv": "^5.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "files": [
+            "core/bootstrap.php"
+        ]
+    },
+    "scripts": {
+        "serve": "php -S localhost:8000 -t public",
+        "cache:clear": "php cli/cache.php clear",
+        "migrate": "vendor/bin/phinx migrate",
+        "seed": "vendor/bin/phinx seed:run",
+        "migrate:rollback": "vendor/bin/phinx rollback",
+        "migrate:create": "vendor/bin/phinx create",
+        "export": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_all.ps1",
+        "js": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_js.ps1",
+        "css": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_css.ps1",
+        "php": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_php.ps1",
+        "app": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_app.ps1"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
