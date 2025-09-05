@@ -46,7 +46,7 @@ if (!function_exists('render_datatable')) {
         $finalOptions['layout'] = array_merge($defaultOptions['layout'], $pageLayout);
 
         $html = sprintf(
-            '<div class="dt-wrapper"><table id="%s" class="dt-table" style="width:100%%" role="grid"></table></div>',
+            '<div class="dt-wrapper"><table id="%s" class="table dt-table table-hover" style="width:100%%" role="grid"></table></div>',
             htmlspecialchars($id)
         );
 
