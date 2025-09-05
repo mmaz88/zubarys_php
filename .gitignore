@@ -1,5 +1,5 @@
 # #################################################################
-# ## A .gitignore file for the PHP Functional Mini-Framework
+# ## A .gitignore file for the PHP Functional Mini-StarterKit
 # ## Generated based on your project structure.
 # #################################################################
 
@@ -11,6 +11,8 @@
 /node_modules/
 /src/
 /_export*
+*.rar
+*.zip
 
 # -----------------------------------------------------------------
 # ## Environment & Configuration

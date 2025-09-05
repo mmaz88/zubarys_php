@@ -290,7 +290,7 @@ if (!function_exists('dd')) {
     }
 }
 
-// Initialize framework components
+// Initialize StarterKit components
 init_cache();
 load_helpers();
 start_session();
