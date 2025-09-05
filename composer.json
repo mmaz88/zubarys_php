@@ -34,12 +34,7 @@
         "migrate": "vendor/bin/phinx migrate",
         "seed": "vendor/bin/phinx seed:run",
         "migrate:rollback": "vendor/bin/phinx rollback",
-        "migrate:create": "vendor/bin/phinx create",
-        "export": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_all.ps1",
-        "js": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_js.ps1",
-        "css": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_css.ps1",
-        "php": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_php.ps1",
-        "app": "powershell -NoProfile -ExecutionPolicy Bypass -File .\\exp_files\\export_app.ps1"
+        "migrate:create": "vendor/bin/phinx create"
     },
     "config": {
         "optimize-autoloader": true,

@@ -1,5 +1,4 @@
 <?php
-
 // phinx.php
 
 // Load the StarterKit's bootstrap file to access helpers like config()

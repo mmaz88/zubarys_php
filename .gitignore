@@ -31,7 +31,7 @@
 # -----------------------------------------------------------------
 # Ignore the compiled CSS directory. These files are generated
 # from the /src/scss/ directory by your build script.
-/public/assets/css/
+
 
 # -----------------------------------------------------------------
 # ## Storage & Generated Files
