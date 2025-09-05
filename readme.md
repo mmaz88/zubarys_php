@@ -53,7 +53,7 @@ Follow these steps to get your development environment up and running.
 First, clone the project to your local machine.
 
 ```bash
-git clone https://github.com/your-username/php-starter-kit.git
+git clone https://github.com/mmaz88/zubarys_php.git
 ```
 
 Navigate into the new project directory.
