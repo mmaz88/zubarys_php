@@ -59,7 +59,7 @@ git clone https://github.com/mmaz88/zubarys_php.git
 Navigate into the new project directory.
 
 ```bash
-cd php-starter-kit
+cd zubarys_php
 ```
 
 ### 2. Install Dependencies
@@ -164,7 +164,7 @@ No action needed! The database file will be created automatically in the `storag
 **B. Configure `.env` File:**
 Open your `.env` file and set the following variables. Note that host, port, username, and password are not needed and should be commented out.
 
-````env
+```env
 # --- General Settings ---
 APP_URL=http://localhost:8000
 APP_DEBUG=true
@@ -177,7 +177,8 @@ DB_DATABASE=storage/database.sqlite
 # DB_HOST=127.0.0.1
 # DB_PORT=3306
 # DB_USERNAME=root
-# DB_PASSWORD=```
+# DB_PASSWORD=
+```
 
 ---
 
@@ -190,7 +191,8 @@ After configuring your database, continue with these final steps.
 This command will create all the necessary tables in your chosen database.
 
 ```bash
-composer migrate```
+composer migrate
+```
 
 ### 5. Seed the Database
 
@@ -198,7 +200,7 @@ This command will populate the database with default data, including the Super A
 
 ```bash
 composer seed
-````
+```
 
 ### 6. Compile Frontend Assets
 
